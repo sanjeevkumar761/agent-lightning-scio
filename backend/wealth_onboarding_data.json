@@ -1,0 +1,687 @@
+{
+  "description": "Wealth client onboarding scenarios for inheritance and business profit claims - used for APO training",
+  "scenarios": [
+    {
+      "id": "WO-001",
+      "client_name": "Margaret Chen",
+      "claim_type": "inheritance",
+      "claimed_amount": 2500000,
+      "currency": "USD",
+      "documents_provided": [
+        "death_certificate",
+        "will_testament",
+        "probate_court_order",
+        "beneficiary_id"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "daughter",
+        "deceased_name": "Robert Chen",
+        "date_of_death": "2024-08-15",
+        "jurisdiction": "California, USA"
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Complete documentation with probate court order confirming inheritance"
+    },
+    {
+      "id": "WO-002",
+      "client_name": "James Morrison",
+      "claim_type": "inheritance",
+      "claimed_amount": 850000,
+      "currency": "GBP",
+      "documents_provided": [
+        "death_certificate",
+        "will_testament"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "nephew",
+        "deceased_name": "Elizabeth Morrison",
+        "date_of_death": "2024-06-20",
+        "jurisdiction": "London, UK"
+      },
+      "red_flags": ["missing_probate"],
+      "expected_decision": "conditional_approve",
+      "expected_risk": "medium",
+      "reason": "Missing probate grant - require Letters of Administration before fund release"
+    },
+    {
+      "id": "WO-003",
+      "client_name": "Yuki Tanaka",
+      "claim_type": "business_profit",
+      "claimed_amount": 5000000,
+      "currency": "JPY",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_3_years",
+        "business_registration",
+        "shareholder_certificate"
+      ],
+      "client_details": {
+        "business_name": "Tanaka Electronics Ltd",
+        "business_type": "private_limited",
+        "years_in_operation": 12,
+        "annual_revenue": 50000000,
+        "profit_margin": 0.15
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Established business with consistent profits and complete documentation"
+    },
+    {
+      "id": "WO-004",
+      "client_name": "Ahmed Al-Rashid",
+      "claim_type": "inheritance",
+      "claimed_amount": 15000000,
+      "currency": "AED",
+      "documents_provided": [
+        "death_certificate",
+        "sharia_court_inheritance_certificate"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "son",
+        "deceased_name": "Mohammed Al-Rashid",
+        "date_of_death": "2024-03-10",
+        "jurisdiction": "Dubai, UAE"
+      },
+      "red_flags": ["high_value", "pep_connection"],
+      "expected_decision": "escalate",
+      "expected_risk": "high",
+      "reason": "High-value claim with PEP connection requires senior compliance review"
+    },
+    {
+      "id": "WO-005",
+      "client_name": "Sarah Williams",
+      "claim_type": "business_profit",
+      "claimed_amount": 750000,
+      "currency": "USD",
+      "documents_provided": [
+        "unaudited_financial_statements",
+        "tax_returns_1_year"
+      ],
+      "client_details": {
+        "business_name": "Williams Consulting LLC",
+        "business_type": "llc",
+        "years_in_operation": 2,
+        "annual_revenue": 900000,
+        "profit_margin": 0.83
+      },
+      "red_flags": ["unusual_profit_margin", "insufficient_history"],
+      "expected_decision": "conditional_approve",
+      "expected_risk": "medium",
+      "reason": "Unusually high profit margin (83%) needs explanation; require audited statements"
+    },
+    {
+      "id": "WO-006",
+      "client_name": "Viktor Petrov",
+      "claim_type": "inheritance",
+      "claimed_amount": 3200000,
+      "currency": "EUR",
+      "documents_provided": [
+        "death_certificate",
+        "notarized_will"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "business_partner",
+        "deceased_name": "Dmitri Volkov",
+        "date_of_death": "2024-01-05",
+        "jurisdiction": "Cyprus"
+      },
+      "red_flags": ["non_family_beneficiary", "high_risk_jurisdiction", "missing_probate"],
+      "expected_decision": "escalate",
+      "expected_risk": "high",
+      "reason": "Non-family beneficiary from high-risk jurisdiction without probate requires enhanced due diligence"
+    },
+    {
+      "id": "WO-007",
+      "client_name": "Linda Okonkwo",
+      "claim_type": "business_profit",
+      "claimed_amount": 2100000,
+      "currency": "NGN",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_3_years",
+        "business_registration",
+        "bank_statements_12_months"
+      ],
+      "client_details": {
+        "business_name": "Okonkwo Imports & Exports",
+        "business_type": "private_limited",
+        "years_in_operation": 8,
+        "annual_revenue": 15000000,
+        "profit_margin": 0.18
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Well-documented business with consistent financials and bank statement verification"
+    },
+    {
+      "id": "WO-008",
+      "client_name": "Michael Torres",
+      "claim_type": "inheritance",
+      "claimed_amount": 450000,
+      "currency": "USD",
+      "documents_provided": [
+        "death_certificate"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "son",
+        "deceased_name": "Carlos Torres",
+        "date_of_death": "2024-09-01",
+        "jurisdiction": "Texas, USA"
+      },
+      "red_flags": ["missing_will", "missing_probate"],
+      "expected_decision": "decline",
+      "expected_risk": "high",
+      "reason": "Insufficient documentation - no will or probate to verify inheritance claim"
+    },
+    {
+      "id": "WO-009",
+      "client_name": "Emma Johansson",
+      "claim_type": "business_profit",
+      "claimed_amount": 1800000,
+      "currency": "SEK",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_2_years",
+        "business_registration"
+      ],
+      "client_details": {
+        "business_name": "Nordic Tech Solutions AB",
+        "business_type": "aktiebolag",
+        "years_in_operation": 5,
+        "annual_revenue": 8000000,
+        "profit_margin": 0.22
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Solid tech company with healthy margins and proper documentation"
+    },
+    {
+      "id": "WO-010",
+      "client_name": "Chen Wei",
+      "claim_type": "inheritance",
+      "claimed_amount": 8500000,
+      "currency": "CNY",
+      "documents_provided": [
+        "death_certificate",
+        "notarized_will",
+        "inheritance_tax_clearance",
+        "beneficiary_id"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "spouse",
+        "deceased_name": "Chen Mei",
+        "date_of_death": "2024-04-22",
+        "jurisdiction": "Shanghai, China"
+      },
+      "red_flags": ["currency_controls"],
+      "expected_decision": "conditional_approve",
+      "expected_risk": "medium",
+      "reason": "Documentation complete but China currency controls may affect transfer - verify SAFE approval"
+    },
+    {
+      "id": "WO-011",
+      "client_name": "Robert Blackwood",
+      "claim_type": "business_profit",
+      "claimed_amount": 12000000,
+      "currency": "USD",
+      "documents_provided": [
+        "unaudited_financial_statements",
+        "tax_returns_1_year",
+        "business_registration"
+      ],
+      "client_details": {
+        "business_name": "Blackwood Ventures LLC",
+        "business_type": "llc",
+        "years_in_operation": 1,
+        "annual_revenue": 15000000,
+        "profit_margin": 0.80
+      },
+      "red_flags": ["new_business", "unusual_profit_margin", "high_value", "unaudited"],
+      "expected_decision": "decline",
+      "expected_risk": "high",
+      "reason": "New business claiming $12M profit with 80% margin and no audit - high fraud risk"
+    },
+    {
+      "id": "WO-012",
+      "client_name": "Isabella Romano",
+      "claim_type": "inheritance",
+      "claimed_amount": 950000,
+      "currency": "EUR",
+      "documents_provided": [
+        "death_certificate",
+        "will_testament",
+        "court_inheritance_certificate",
+        "beneficiary_id",
+        "tax_clearance"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "daughter",
+        "deceased_name": "Giovanni Romano",
+        "date_of_death": "2024-02-28",
+        "jurisdiction": "Milan, Italy"
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Comprehensive documentation including Italian court certificate and tax clearance"
+    },
+    {
+      "id": "WO-013",
+      "client_name": "David Kim",
+      "claim_type": "business_profit",
+      "claimed_amount": 3500000,
+      "currency": "KRW",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_3_years",
+        "business_registration",
+        "shareholder_certificate",
+        "bank_statements_12_months"
+      ],
+      "client_details": {
+        "business_name": "Kim Manufacturing Co",
+        "business_type": "corporation",
+        "years_in_operation": 15,
+        "annual_revenue": 25000000,
+        "profit_margin": 0.14
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Long-established manufacturing company with comprehensive documentation"
+    },
+    {
+      "id": "WO-014",
+      "client_name": "Anonymous Trust",
+      "claim_type": "inheritance",
+      "claimed_amount": 5000000,
+      "currency": "CHF",
+      "documents_provided": [
+        "trust_deed",
+        "death_certificate"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "trust_beneficiary",
+        "deceased_name": "Undisclosed",
+        "date_of_death": "2024-05-15",
+        "jurisdiction": "Cayman Islands"
+      },
+      "red_flags": ["anonymous_structure", "high_risk_jurisdiction", "ubo_unclear"],
+      "expected_decision": "decline",
+      "expected_risk": "high",
+      "reason": "Anonymous trust structure with unclear UBO from offshore jurisdiction - cannot complete KYC"
+    },
+    {
+      "id": "WO-015",
+      "client_name": "Patricia Mendez",
+      "claim_type": "business_profit",
+      "claimed_amount": 680000,
+      "currency": "MXN",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_2_years",
+        "business_registration",
+        "sat_tax_certificate"
+      ],
+      "client_details": {
+        "business_name": "Mendez Restaurantes SA de CV",
+        "business_type": "sa_de_cv",
+        "years_in_operation": 7,
+        "annual_revenue": 4500000,
+        "profit_margin": 0.12
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Restaurant chain with appropriate profit margins and full Mexican tax documentation"
+    },
+    {
+      "id": "WO-016",
+      "client_name": "Alexander Novak",
+      "claim_type": "inheritance",
+      "claimed_amount": 2800000,
+      "currency": "USD",
+      "documents_provided": [
+        "death_certificate",
+        "will_testament",
+        "probate_court_order",
+        "beneficiary_id"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "brother",
+        "deceased_name": "Nikolai Novak",
+        "date_of_death": "2024-07-10",
+        "jurisdiction": "New York, USA"
+      },
+      "red_flags": ["sanctioned_country_origin"],
+      "expected_decision": "escalate",
+      "expected_risk": "high",
+      "reason": "Client originally from sanctioned country - requires OFAC screening and compliance review"
+    },
+    {
+      "id": "WO-017",
+      "client_name": "Hannah Schmidt",
+      "claim_type": "business_profit",
+      "claimed_amount": 1200000,
+      "currency": "EUR",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_3_years",
+        "business_registration",
+        "german_trade_license"
+      ],
+      "client_details": {
+        "business_name": "Schmidt Engineering GmbH",
+        "business_type": "gmbh",
+        "years_in_operation": 20,
+        "annual_revenue": 6000000,
+        "profit_margin": 0.20
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Well-established German engineering firm with excellent track record"
+    },
+    {
+      "id": "WO-018",
+      "client_name": "George Papadopoulos",
+      "claim_type": "inheritance",
+      "claimed_amount": 380000,
+      "currency": "EUR",
+      "documents_provided": [
+        "death_certificate",
+        "will_testament",
+        "tax_clearance_certificate"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "son",
+        "deceased_name": "Stavros Papadopoulos",
+        "date_of_death": "2024-08-05",
+        "jurisdiction": "Athens, Greece"
+      },
+      "red_flags": ["missing_court_certificate"],
+      "expected_decision": "conditional_approve",
+      "expected_risk": "medium",
+      "reason": "Require Greek court acceptance of inheritance certificate before proceeding"
+    },
+    {
+      "id": "WO-019",
+      "client_name": "Rachel Green",
+      "claim_type": "business_profit",
+      "claimed_amount": 950000,
+      "currency": "USD",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_2_years",
+        "business_registration",
+        "partnership_agreement"
+      ],
+      "client_details": {
+        "business_name": "Green & Associates LLP",
+        "business_type": "llp",
+        "years_in_operation": 4,
+        "annual_revenue": 2800000,
+        "profit_margin": 0.34
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Professional services partnership with appropriate margins and documentation"
+    },
+    {
+      "id": "WO-020",
+      "client_name": "Abdul Rahman",
+      "claim_type": "inheritance",
+      "claimed_amount": 6500000,
+      "currency": "SAR",
+      "documents_provided": [
+        "death_certificate",
+        "sharia_inheritance_ruling",
+        "family_card",
+        "national_id"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "eldest_son",
+        "deceased_name": "Khalid Rahman",
+        "date_of_death": "2024-06-01",
+        "jurisdiction": "Riyadh, Saudi Arabia"
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Complete Sharia-compliant inheritance documentation with court ruling"
+    },
+    {
+      "id": "WO-021",
+      "client_name": "Sophie Martin",
+      "claim_type": "business_profit",
+      "claimed_amount": 420000,
+      "currency": "EUR",
+      "documents_provided": [
+        "financial_statements",
+        "tax_returns_1_year"
+      ],
+      "client_details": {
+        "business_name": "Martin Boutique SARL",
+        "business_type": "sarl",
+        "years_in_operation": 3,
+        "annual_revenue": 800000,
+        "profit_margin": 0.52
+      },
+      "red_flags": ["unusual_profit_margin", "unaudited"],
+      "expected_decision": "conditional_approve",
+      "expected_risk": "medium",
+      "reason": "High margin for retail requires explanation; suggest audited accounts for amounts over 400K"
+    },
+    {
+      "id": "WO-022",
+      "client_name": "Thomas Anderson",
+      "claim_type": "inheritance",
+      "claimed_amount": 125000,
+      "currency": "AUD",
+      "documents_provided": [
+        "death_certificate",
+        "letters_of_administration",
+        "beneficiary_id"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "nephew",
+        "deceased_name": "William Anderson",
+        "date_of_death": "2024-09-20",
+        "jurisdiction": "Sydney, Australia"
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Letters of Administration confirm intestate succession to nephew"
+    },
+    {
+      "id": "WO-023",
+      "client_name": "Crypto Holdings Ltd",
+      "claim_type": "business_profit",
+      "claimed_amount": 8500000,
+      "currency": "USD",
+      "documents_provided": [
+        "unaudited_financial_statements",
+        "business_registration"
+      ],
+      "client_details": {
+        "business_name": "Crypto Holdings Ltd",
+        "business_type": "limited",
+        "years_in_operation": 2,
+        "annual_revenue": 50000000,
+        "profit_margin": 0.17
+      },
+      "red_flags": ["crypto_business", "unaudited", "rapid_growth", "bvi_registered"],
+      "expected_decision": "escalate",
+      "expected_risk": "high",
+      "reason": "Crypto business from BVI with rapid growth requires enhanced due diligence and source of funds"
+    },
+    {
+      "id": "WO-024",
+      "client_name": "Maria Gonzalez",
+      "claim_type": "inheritance",
+      "claimed_amount": 290000,
+      "currency": "EUR",
+      "documents_provided": [
+        "death_certificate",
+        "will_testament",
+        "spanish_inheritance_tax_paid",
+        "notarial_deed"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "daughter",
+        "deceased_name": "Carlos Gonzalez",
+        "date_of_death": "2024-04-15",
+        "jurisdiction": "Madrid, Spain"
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Full Spanish succession documentation with tax clearance"
+    },
+    {
+      "id": "WO-025",
+      "client_name": "John Smith",
+      "claim_type": "business_profit",
+      "claimed_amount": 5500000,
+      "currency": "USD",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_5_years",
+        "business_registration",
+        "board_resolution",
+        "shareholder_register"
+      ],
+      "client_details": {
+        "business_name": "Smith Industries Inc",
+        "business_type": "c_corp",
+        "years_in_operation": 25,
+        "annual_revenue": 45000000,
+        "profit_margin": 0.12
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Blue-chip company with 25-year track record and comprehensive documentation"
+    },
+    {
+      "id": "WO-026",
+      "client_name": "Unknown Beneficiary",
+      "claim_type": "inheritance",
+      "claimed_amount": 750000,
+      "currency": "USD",
+      "documents_provided": [
+        "death_certificate",
+        "handwritten_note"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "friend",
+        "deceased_name": "Martha Jones",
+        "date_of_death": "2024-07-25",
+        "jurisdiction": "Florida, USA"
+      },
+      "red_flags": ["no_formal_will", "non_family", "suspicious_document"],
+      "expected_decision": "decline",
+      "expected_risk": "high",
+      "reason": "Handwritten note is not a valid legal will; non-family claim requires probate verification"
+    },
+    {
+      "id": "WO-027",
+      "client_name": "Aisha Patel",
+      "claim_type": "business_profit",
+      "claimed_amount": 1650000,
+      "currency": "INR",
+      "documents_provided": [
+        "audited_financial_statements",
+        "tax_returns_3_years",
+        "gst_registration",
+        "company_registration",
+        "director_kyc"
+      ],
+      "client_details": {
+        "business_name": "Patel Textiles Pvt Ltd",
+        "business_type": "private_limited",
+        "years_in_operation": 10,
+        "annual_revenue": 12000000,
+        "profit_margin": 0.14
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Well-established textile business with GST compliance and director KYC complete"
+    },
+    {
+      "id": "WO-028",
+      "client_name": "Pierre Dubois",
+      "claim_type": "inheritance",
+      "claimed_amount": 1100000,
+      "currency": "EUR",
+      "documents_provided": [
+        "death_certificate",
+        "notarial_inheritance_act",
+        "french_tax_declaration",
+        "beneficiary_id"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "son",
+        "deceased_name": "Jean Dubois",
+        "date_of_death": "2024-03-30",
+        "jurisdiction": "Paris, France"
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Complete French succession with notarial act and tax filing"
+    },
+    {
+      "id": "WO-029",
+      "client_name": "Shell Company XYZ",
+      "claim_type": "business_profit",
+      "claimed_amount": 3200000,
+      "currency": "USD",
+      "documents_provided": [
+        "certificate_of_incorporation"
+      ],
+      "client_details": {
+        "business_name": "XYZ Global Trading Ltd",
+        "business_type": "limited",
+        "years_in_operation": 1,
+        "annual_revenue": 0,
+        "profit_margin": 0
+      },
+      "red_flags": ["shell_company", "no_financials", "no_operating_history"],
+      "expected_decision": "decline",
+      "expected_risk": "high",
+      "reason": "No evidence of actual business operations - appears to be shell company"
+    },
+    {
+      "id": "WO-030",
+      "client_name": "Jennifer Wu",
+      "claim_type": "inheritance",
+      "claimed_amount": 520000,
+      "currency": "SGD",
+      "documents_provided": [
+        "death_certificate",
+        "grant_of_probate",
+        "will_testament",
+        "beneficiary_nric"
+      ],
+      "client_details": {
+        "relationship_to_deceased": "sister",
+        "deceased_name": "Michelle Wu",
+        "date_of_death": "2024-08-28",
+        "jurisdiction": "Singapore"
+      },
+      "red_flags": [],
+      "expected_decision": "approve",
+      "expected_risk": "low",
+      "reason": "Singapore Grant of Probate provides full legal authority for inheritance distribution"
+    }
+  ]
+}
