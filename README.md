@@ -8,6 +8,22 @@ Sparky makes it easy to run, visualize, and understand prompt optimization for y
 
 ---
 
+## 🎯 Why Sparky?
+
+**Stop guessing. Start optimizing.**
+
+| Problem | Sparky Solution |
+|---------|-----------------|
+| 🔄 Manual prompt tweaking takes hours/days | **Automatic** — APO tests variations for you |
+| 📉 Hard to know if changes actually helped | **Measurable** — See exact accuracy gains (e.g., +13.5%) |
+| 💰 No visibility into token costs | **Cost-aware** — Compare token usage across versions |
+| 🤷 "Which prompt version was best?" | **Visual ranking** — Charts & tables show winners clearly |
+| 📝 Tribal knowledge, no documentation | **Traceable** — Full history of what was tried |
+
+**Typical results:** 5-15% accuracy improvement in minutes, not days.
+
+---
+
 ## ✨ Key Features
 
 - **One-Click APO** — Run automatic prompt optimization from the dashboard
