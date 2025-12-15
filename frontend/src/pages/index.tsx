@@ -592,7 +592,7 @@ export default function Dashboard() {
         <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-slate-800 mb-2">
-              Prompt Optimization Dashboard
+              Sparky
             </h1>
             <p className="text-slate-500">
               See how Agent Lightning improved your prompt through automatic optimization
