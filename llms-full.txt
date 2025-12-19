@@ -1,0 +1,711 @@
+# Agent Lightning APO
+
+> Complete documentation for Automatic Prompt Optimization. All code examples are verified against the actual source files in this repository.
+
+## What is APO?
+
+APO (Automatic Prompt Optimization) improves agent prompts by:
+1. Running your agent on test tasks and collecting failures
+2. Having an LLM analyze failures and generate critiques ("textual gradients")
+3. Having an LLM edit the prompt to address one critique at a time
+4. Using beam search to keep the best-performing prompts
+5. Repeating for multiple rounds
+
+## Installation
+
+```bash
+pip install agentlightning openai python-dotenv
+```
+
+## Environment Variables
+
+```bash
+# Azure OpenAI (used in all examples in this repo)
+AZURE_OPENAI_ENDPOINT=https://your-resource.openai.azure.com/
+AZURE_OPENAI_API_KEY=your-key
+AZURE_OPENAI_API_VERSION=2024-02-15-preview
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+```
+
+## Core Imports
+
+From the actual source files in this repository:
+
+```python
+# For the agent function
+from agentlightning.litagent import rollout
+from agentlightning.types import PromptTemplate
+
+# For the training script
+from agentlightning import Trainer
+from agentlightning.logging import setup as setup_logging
+from agentlightning.adapter import TraceToMessages
+from agentlightning.algorithm.apo import APO
+from agentlightning.types import Dataset
+```
+
+## Minimum Integration
+
+### Step 1: Wrap Your Agent with @rollout
+
+The `@rollout` decorator marks a function as an APO-optimizable agent. The function must:
+- Accept `(task: dict, prompt_template: PromptTemplate)` as parameters
+- Return a `float` reward between 0.0 and 1.0
+
+```python
+from agentlightning.litagent import rollout
+from agentlightning.types import PromptTemplate
+
+@rollout
+def my_agent(task: dict, prompt_template: PromptTemplate) -> float:
+    # Format the prompt using APO's template
+    prompt = prompt_template.format(**task)
+
+    # Your agent logic here
+    response = call_your_llm(prompt)
+
+    # Return reward 0.0-1.0
+    if task["expected"] in response:
+        return 1.0
+    return 0.0
+```
+
+### Step 2: Create a Seed Prompt Template
+
+```python
+from agentlightning.types import PromptTemplate
+
+def seed_prompt() -> PromptTemplate:
+    return PromptTemplate(
+        template="Your prompt with {placeholder} variables here",
+        engine="f-string",
+    )
+```
+
+### Step 3: Create Training Script
+
+This is the actual pattern used in `backend/room_selector_apo.py`:
+
+```python
+import logging
+import os
+from typing import Tuple, cast
+
+from openai import AsyncOpenAI
+
+from agentlightning import Trainer
+from agentlightning.logging import setup as setup_logging
+from agentlightning.adapter import TraceToMessages
+from agentlightning.algorithm.apo import APO
+from agentlightning.types import Dataset
+
+# Import your agent and prompt
+from my_agent import my_agent, seed_prompt, MyTaskType
+
+
+def load_train_val_dataset() -> Tuple[Dataset[MyTaskType], Dataset[MyTaskType]]:
+    # Load your tasks and split 50/50
+    tasks = load_tasks()
+    split = len(tasks) // 2
+    train = [tasks[i] for i in range(split)]
+    val = [tasks[i] for i in range(split, len(tasks))]
+    return cast(Dataset[MyTaskType], train), cast(Dataset[MyTaskType], val)
+
+
+def setup_apo_logger(file_path: str = "apo.log") -> None:
+    """Save APO logs to file for dashboard parsing."""
+    file_handler = logging.FileHandler(file_path)
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] (Process-%(process)d %(name)s)   %(message)s")
+    file_handler.setFormatter(formatter)
+    logging.getLogger("agentlightning.algorithm.apo").addHandler(file_handler)
+
+
+def main() -> None:
+    setup_logging()
+    setup_apo_logger()
+
+    # Azure OpenAI client setup (from actual source)
+    azure_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+    azure_api_key = os.getenv("AZURE_OPENAI_API_KEY")
+
+    if not azure_endpoint or not azure_api_key:
+        raise RuntimeError("AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_API_KEY must be set")
+
+    openai_client = AsyncOpenAI(
+        base_url=azure_endpoint,
+        api_key=azure_api_key,
+        default_headers={"api-key": azure_api_key}
+    )
+
+    algo = APO[MyTaskType](
+        openai_client,
+        val_batch_size=10,
+        gradient_batch_size=4,
+        beam_width=2,
+        branch_factor=2,
+        beam_rounds=2,
+        _poml_trace=True,
+    )
+
+    trainer = Trainer(
+        algorithm=algo,
+        n_runners=8,
+        initial_resources={
+            "prompt_template": seed_prompt()
+        },
+        adapter=TraceToMessages(),
+    )
+
+    dataset_train, dataset_val = load_train_val_dataset()
+    trainer.fit(agent=my_agent, train_dataset=dataset_train, val_dataset=dataset_val)
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## APO Parameters
+
+From the official Agent Lightning documentation:
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `gradient_model` | 'gpt-4-mini' | LLM for generating critiques |
+| `apply_edit_model` | 'gpt-4-mini' | LLM for applying prompt edits |
+| `diversity_temperature` | 1.0 | Temperature for LLM diversity |
+| `gradient_batch_size` | 4 | Failed rollouts analyzed per critique |
+| `val_batch_size` | 16 | Tasks per validation evaluation |
+| `beam_width` | 4 | Top prompts kept each round |
+| `branch_factor` | 4 | Variations generated per prompt |
+| `beam_rounds` | 3 | Total optimization iterations |
+| `rollout_batch_timeout` | 3600.0 | Timeout in seconds |
+| `run_initial_validation` | True | Validate seed prompt first |
+
+Note: The examples in this repo use smaller values (beam_width=2, etc.) for faster iteration.
+
+## Complete Example: Room Selector Agent
+
+From `backend/room_selector.py` - a conference room booking agent with tool calling.
+
+### Task Type Definition
+
+```python
+from typing import TypedDict, List, Tuple
+
+class RoomRequirement(TypedDict):
+    date: str
+    time: str
+    duration_min: int
+    attendees: int
+    needs: List[str]
+    accessible_required: bool
+
+class RoomSelectionTask(TypedDict):
+    id: str
+    task_input: RoomRequirement
+    expected_choice: str
+```
+
+### Seed Prompt Template
+
+From `backend/room_selector.py` lines 90-107:
+
+```python
+def prompt_template_baseline() -> PromptTemplate:
+    return PromptTemplate(
+        template=(
+            "You are a scheduling assistant. Given the requirements, return strictly in this format:\n"
+            "final_choice: <ROOM_ID or No Room>\n"
+            "reason: <one line stating the decisive criteria>\n"
+            "If no room fits, return:\n"
+            "final_choice: No Room\n"
+            "reason: <reason>\n"
+            "\n"
+            "Example:\n"
+            "final_choice: Nova\n"
+            "reason: Only room with enough capacity and all required equipment.\n"
+            "\n"
+            "Requirements: Find a room on {date} at {time} for {duration_min} minutes, {attendees} attendees. Needs: {needs}. Accessible required: {accessible_required}"
+        ),
+        engine="f-string",
+    )
+```
+
+### Agent Function with Tool Calling
+
+From `backend/room_selector.py` - the actual implementation:
+
+```python
+from openai import OpenAI
+from pydantic import BaseModel, Field
+from agentlightning.litagent import rollout
+from agentlightning.types import PromptTemplate
+
+class JudgeResponse(BaseModel):
+    reason: str = Field(description="The reason for the score. No more than 100 characters.")
+    score: float = Field(description="The score for the match on a 0-1 scale. Be critical.")
+
+@rollout
+def room_selector(task: RoomSelectionTask, prompt_template: PromptTemplate) -> float:
+    client = OpenAI(
+        base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        default_headers={"api-key": os.getenv("AZURE_OPENAI_API_KEY")}
+    )
+    model = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1-mini")
+
+    user_message = prompt_template.format(**task["task_input"])
+
+    messages = [
+        {"role": "system", "content": "You are a scheduling assistant."},
+        {"role": "user", "content": user_message},
+    ]
+
+    # First call - may request tool
+    resp = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        tools=TOOL_DEFINITIONS,
+        tool_choice="auto",
+        temperature=0.0,
+    )
+
+    # Handle tool calls if present
+    tool_calls = resp.choices[0].message.tool_calls
+    if tool_calls:
+        # Process tool calls and make second LLM call
+        # ... (tool handling code)
+        final_message = next_resp.choices[0].message.content
+    else:
+        final_message = resp.choices[0].message.content
+
+    # Grade with LLM-as-judge
+    return room_selection_grader(client, final_message, task["expected_choice"])
+```
+
+### LLM-as-Judge Reward Function
+
+From `backend/room_selector.py` lines 110-145:
+
+```python
+def room_selection_grader(client: OpenAI, final_message: str, expected_choice: str) -> float:
+    judge_prompt = (
+        f"You are a helpful grader for a room selection task.\n"
+        f"Task output:\n{final_message}\n\n"
+        f"Task expected answer:\n{expected_choice}\n\n"
+        f"Score the match on a 0-1 scale. Give partial credit for close answers, "
+        f"correct room ID, or correct reasoning, even if the format is not exact.\n"
+        f"If the answer is correct but the format is slightly off, give at least 0.7. "
+        f"If the room ID is correct but the reason is missing, give at least 0.8. "
+        f"If the answer is wrong, give 0.0.\n"
+        f"Be helpful and not overly strict."
+    )
+
+    judge = client.chat.completions.parse(
+        model="gpt-4.1-mini",
+        messages=[{"role": "user", "content": judge_prompt}],
+        response_format=JudgeResponse,
+        temperature=0.0,
+    )
+
+    judge_result_parsed = JudgeResponse.model_validate_json(judge.choices[0].message.content)
+
+    # Cost penalty based on response length
+    mock_token_cost = len(final_message.split()) if final_message else 0
+    lambda_penalty = 0.01
+    reward = judge_result_parsed.score - lambda_penalty * mock_token_cost
+
+    return reward
+```
+
+## Complete Example: Wealth Onboarding Agent
+
+From `backend/wealth_onboarding_apo.py` - a compliance agent with weighted reward.
+
+### Task Type Definition
+
+```python
+from typing import TypedDict, List
+
+class ClientDetails(TypedDict, total=False):
+    relationship_to_deceased: str
+    deceased_name: str
+    date_of_death: str
+    jurisdiction: str
+    business_name: str
+    business_type: str
+    years_in_operation: int
+    annual_revenue: int
+    profit_margin: float
+
+class WealthOnboardingTask(TypedDict):
+    id: str
+    client_name: str
+    claim_type: str  # 'inheritance' or 'business_profit'
+    claimed_amount: int
+    currency: str
+    documents_provided: List[str]
+    client_details: ClientDetails
+    red_flags: List[str]
+    expected_decision: str  # approve, conditional_approve, escalate, decline
+    expected_risk: str  # low, medium, high
+    reason: str
+    task_input: str
+```
+
+### Seed Prompt Template
+
+From `backend/wealth_onboarding_apo.py` lines 70-92:
+
+```python
+def prompt_template_baseline() -> PromptTemplate:
+    return PromptTemplate(
+        template=(
+            "You are a wealth management compliance analyst evaluating client onboarding.\n"
+            "Review the documentation for inheritance or business profit claims.\n"
+            "\n"
+            "DECISION OPTIONS:\n"
+            "- approve: All required documentation present, low risk\n"
+            "- conditional_approve: Documentation mostly complete, minor items needed\n"
+            "- escalate: High-value or high-risk case requiring senior review\n"
+            "- decline: Insufficient documentation or unacceptable risk\n"
+            "\n"
+            "Return exactly two lines:\n"
+            "decision: [approve|conditional_approve|escalate|decline]\n"
+            "reason: [Brief explanation in 100 characters or less]\n"
+            "\n"
+            "No additional text allowed.\n"
+            "\n"
+            "Case details:\n"
+            "{task_input}"
+        ),
+        engine="f-string",
+    )
+```
+
+### Weighted Reward Function
+
+From `backend/wealth_onboarding_apo.py` lines 188-267 - the exact implementation:
+
+```python
+@rollout
+def wealth_onboarding_agent(task: WealthOnboardingTask, prompt_template: PromptTemplate) -> float:
+    client = OpenAI(
+        base_url=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        default_headers={"api-key": os.getenv("AZURE_OPENAI_API_KEY")}
+    )
+    model = os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1-mini")
+
+    user_message = prompt_template.format(task_input=task["task_input"])
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {"role": "system", "content": "You are a compliance analyst."},
+            {"role": "user", "content": user_message}
+        ],
+        temperature=0.0,
+        max_tokens=150
+    )
+
+    response_text = response.choices[0].message.content or ""
+    decision, reason = parse_decision(response_text)
+    expected_decision = task["expected_decision"]
+    expected_risk = task["expected_risk"]
+
+    reward = 0.0
+
+    # Format validity (40% of score)
+    valid_decisions = ["approve", "conditional_approve", "escalate", "decline"]
+    if decision in valid_decisions:
+        reward += 0.2
+    if reason and len(reason) > 5:
+        reward += 0.2
+
+    # Decision accuracy (40% of score)
+    if decision == expected_decision:
+        reward += 0.4
+    elif decision and expected_decision:
+        # Partial credit for close decisions
+        close_pairs = [
+            ("approve", "conditional_approve"),
+            ("conditional_approve", "escalate"),
+            ("escalate", "decline")
+        ]
+        for pair in close_pairs:
+            if decision in pair and expected_decision in pair:
+                reward += 0.2
+                break
+
+    # Risk appropriateness (20% of score)
+    if expected_risk == "high" and decision in ["escalate", "decline"]:
+        reward += 0.2
+    elif expected_risk == "low" and decision in ["approve", "conditional_approve"]:
+        reward += 0.2
+    elif expected_risk == "medium" and decision in ["conditional_approve", "escalate"]:
+        reward += 0.2
+
+    return reward
+```
+
+## LangGraph Integration
+
+From `agent-instrumentation-examples/langgraph-wealth-onboarding/langgraph_wealth_agent.py`:
+
+```python
+from typing import TypedDict
+from langgraph.graph import StateGraph, END
+from langchain_openai import AzureChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
+
+from agentlightning.litagent import rollout
+from agentlightning.types import PromptTemplate
+
+
+class AgentState(TypedDict):
+    case_details: str
+    system_prompt: str
+    document_analysis: str
+    red_flag_analysis: str
+    risk_level: str
+    decision: str
+    reason: str
+    final_output: str
+
+
+def analyze_documents(state: AgentState) -> AgentState:
+    llm = AzureChatOpenAI(
+        azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+        api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+        api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview"),
+        azure_deployment=os.getenv("AZURE_OPENAI_DEPLOYMENT", "gpt-4.1-mini"),
+        temperature=0.0,
+    )
+    # ... node logic
+    return {**state, "document_analysis": response.content}
+
+
+def create_wealth_onboarding_graph() -> StateGraph:
+    workflow = StateGraph(AgentState)
+    workflow.add_node("analyze_documents", analyze_documents)
+    workflow.add_node("check_red_flags", check_red_flags)
+    workflow.add_node("make_decision", make_decision)
+    workflow.set_entry_point("analyze_documents")
+    workflow.add_edge("analyze_documents", "check_red_flags")
+    workflow.add_edge("check_red_flags", "make_decision")
+    workflow.add_edge("make_decision", END)
+    return workflow.compile()
+
+
+@rollout
+def langgraph_wealth_agent(task: WealthOnboardingTask, prompt_template: PromptTemplate) -> float:
+    # Format the prompt using APO's template
+    system_prompt = prompt_template.format(task_input=task["task_input"])
+
+    # Create and run the LangGraph agent
+    graph = create_wealth_onboarding_graph()
+
+    initial_state = AgentState(
+        case_details=task["task_input"],
+        system_prompt=system_prompt,
+        document_analysis="",
+        red_flag_analysis="",
+        risk_level="",
+        decision="",
+        reason="",
+        final_output=""
+    )
+
+    result = graph.invoke(initial_state)
+
+    # Calculate reward
+    return calculate_reward(
+        decision=result["decision"],
+        expected_decision=task["expected_decision"],
+        expected_risk=task["expected_risk"]
+    )
+```
+
+## Dataset Format
+
+From `backend/room_tasks.jsonl` - actual format used:
+
+```jsonl
+{"id": "s01", "task_input": {"date": "2025-10-13", "time": "16:30", "duration_min": 30, "attendees": 12, "needs": ["projector", "confphone"], "accessible_required": true}, "expected_choice": "No Room"}
+{"id": "s02", "task_input": {"date": "2025-10-13", "time": "14:30", "duration_min": 30, "attendees": 12, "needs": ["whiteboard", "confphone"], "accessible_required": true}, "expected_choice": "Nova"}
+```
+
+Load with:
+```python
+import json
+tasks = []
+for line in open("room_tasks.jsonl"):
+    task = json.loads(line)
+    tasks.append(RoomSelectionTask(**task))
+```
+
+## Sparky Dashboard
+
+Sparky is a web UI for visualizing APO results. It parses `apo.log` and displays metrics.
+
+### Starting the Dashboard
+
+Terminal 1 (backend):
+```bash
+cd backend
+pip install fastapi uvicorn python-dotenv
+uvicorn main:app --reload
+```
+
+Terminal 2 (frontend):
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173
+
+### API Endpoints
+
+From `backend/main.py`:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/optimization` | GET | Full results: metrics, prompts, story, recommendations |
+| `/api/metrics` | GET | Prompt version metrics only |
+| `/api/prompts` | GET | All prompt versions |
+| `/api/log` | GET | Raw apo.log content |
+| `/api/examples` | GET | Available example agents |
+| `/api/run_apo?example=room_selector` | POST | Start APO training |
+| `/api/run_status/{pid}` | GET | Check if training is running |
+| `/api/run_logs/{pid}` | GET | Get logs for a run |
+
+### Available Examples
+
+From `backend/main.py` lines 837-848:
+
+```python
+APO_EXAMPLES = {
+    "room_selector": {
+        "name": "Room Selector",
+        "description": "Optimize prompts for a conference room booking assistant",
+        "script": "room_selector_apo.py"
+    },
+    "wealth_onboarding": {
+        "name": "Wealth Client Onboarding",
+        "description": "Optimize prompts for bank KYC/AML compliance",
+        "script": "wealth_onboarding_apo.py"
+    }
+}
+```
+
+## Reward Function Patterns
+
+### Pattern 1: LLM-as-Judge (used in room_selector.py)
+
+Best for subjective tasks where correctness is hard to codify.
+
+```python
+def grade_with_llm(response: str, expected: str) -> float:
+    judge_prompt = f"""Score this response 0-1:
+Expected: {expected}
+Got: {response}
+Give partial credit for close answers."""
+
+    result = client.chat.completions.parse(
+        model="gpt-4.1-mini",
+        messages=[{"role": "user", "content": judge_prompt}],
+        response_format=JudgeResponse,
+        temperature=0.0,
+    )
+    return JudgeResponse.model_validate_json(result.choices[0].message.content).score
+```
+
+### Pattern 2: Weighted Components (used in wealth_onboarding_apo.py)
+
+Best when you have multiple independent criteria.
+
+```python
+def calculate_reward(decision: str, expected: str, expected_risk: str) -> float:
+    reward = 0.0
+
+    # Format (40%)
+    if decision in valid_decisions:
+        reward += 0.2
+    if reason and len(reason) > 5:
+        reward += 0.2
+
+    # Accuracy (40%)
+    if decision == expected:
+        reward += 0.4
+    elif is_close(decision, expected):
+        reward += 0.2  # Partial credit
+
+    # Risk appropriateness (20%)
+    if matches_risk_level(decision, expected_risk):
+        reward += 0.2
+
+    return reward
+```
+
+### Pattern 3: Cost-Penalized (used in room_selector.py)
+
+When optimizing for both accuracy and efficiency:
+
+```python
+def calculate_reward(response: str, expected: str) -> float:
+    base_score = grade_accuracy(response, expected)
+
+    token_cost = len(response.split())
+    lambda_penalty = 0.01
+
+    return base_score - lambda_penalty * token_cost
+```
+
+## File Structure
+
+```
+agent-lightning-scio/
+├── backend/
+│   ├── main.py                      # FastAPI server
+│   ├── room_selector.py             # Room booking agent
+│   ├── room_selector_apo.py         # APO training for room selector
+│   ├── room_tasks.jsonl             # 57 test tasks
+│   ├── wealth_onboarding_apo.py     # Compliance agent + training
+│   └── wealth_onboarding_data.json  # Compliance test scenarios
+├── frontend/
+│   ├── src/pages/index.tsx          # Dashboard UI
+│   └── src/lib/api.ts               # API client
+├── agent-instrumentation-examples/
+│   └── langgraph-wealth-onboarding/ # LangGraph integration
+│       ├── langgraph_wealth_agent.py
+│       ├── langgraph_wealth_apo.py
+│       └── requirements.txt
+├── llms.txt                         # Index file (you are here)
+├── llms-full.txt                    # This file
+└── README.md                        # Quick start
+```
+
+## Checklist
+
+1. `pip install agentlightning openai python-dotenv`
+2. Set `AZURE_OPENAI_ENDPOINT` and `AZURE_OPENAI_API_KEY`
+3. Add `@rollout` decorator to your agent function
+4. Change signature to `(task: dict, prompt_template: PromptTemplate) -> float`
+5. Use `prompt_template.format(**task)` or `prompt_template.format(task_input=task["task_input"])`
+6. Return reward float 0.0-1.0
+7. Create `PromptTemplate` with `{placeholders}` matching your task fields
+8. Prepare tasks with expected outputs (this repo has 57 room tasks)
+9. Split 50/50 into train/val
+10. Create trainer with `APO` algorithm
+11. Call `trainer.fit()`
+12. Results logged to `apo.log` and viewable in Sparky dashboard
+
+## Links
+
+- [Agent Lightning GitHub](https://github.com/microsoft/agent-lightning)
+- [Agent Lightning Docs](https://microsoft.github.io/agent-lightning/)
+- [APO Algorithm Reference](https://microsoft.github.io/agent-lightning/stable/algorithm-zoo/apo/)

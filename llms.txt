@@ -1,0 +1,38 @@
+# Agent Lightning APO
+
+> Automatic Prompt Optimization for AI agents. APO improves prompts using LLM-generated critiques ("textual gradients") and beam search. This repository (Sparky) provides a visual dashboard for running and analyzing APO results.
+
+## Core Documentation
+
+- [llms-full.txt](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/llms-full.txt): Complete reference - all concepts, verified code examples, API documentation
+- [README.md](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/README.md): Quick start for Sparky dashboard
+
+## How APO Works
+
+- [APO_SECRET_SAUCE.md](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/APO_SECRET_SAUCE.md): Textual gradients and beam search algorithm explained
+- [AGENT_LIGHTNING_FLOW.md](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/AGENT_LIGHTNING_FLOW.md): Visual diagrams of the optimization loop
+- [APO_SIMPLE_DEFINITIONS.md](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/APO_SIMPLE_DEFINITIONS.md): Plain-English definitions of rollout, reward, datasets
+
+## Integration Guides
+
+- [INTEGRATION_GUIDE.md](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/INTEGRATION_GUIDE.md): Framework-agnostic integration patterns
+- [AGENT_LIGHTNING_CHECKLIST.md](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/AGENT_LIGHTNING_CHECKLIST.md): Step-by-step integration checklist
+
+## Working Examples
+
+- [backend/room_selector.py](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/backend/room_selector.py): Conference room booking agent with tool calls and LLM-as-judge reward
+- [backend/room_selector_apo.py](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/backend/room_selector_apo.py): APO training script for room selector
+- [backend/wealth_onboarding_apo.py](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/backend/wealth_onboarding_apo.py): Compliance agent with weighted reward function
+- [backend/room_tasks.jsonl](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/backend/room_tasks.jsonl): Example dataset (57 tasks in JSONL format)
+- [agent-instrumentation-examples/langgraph-wealth-onboarding/](https://github.com/sanjeevkumar761/agent-lightning-scio/tree/main/agent-instrumentation-examples/langgraph-wealth-onboarding): LangGraph integration example
+
+## Dashboard (Sparky)
+
+- [backend/main.py](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/backend/main.py): FastAPI server - parses apo.log, serves metrics via REST API
+- [frontend/src/pages/index.tsx](https://github.com/sanjeevkumar761/agent-lightning-scio/blob/main/frontend/src/pages/index.tsx): React dashboard with charts and prompt comparison
+
+## External Links
+
+- [Agent Lightning GitHub](https://github.com/microsoft/agent-lightning): The core library
+- [Agent Lightning Docs](https://microsoft.github.io/agent-lightning/): Official documentation
+- [APO Algorithm Reference](https://microsoft.github.io/agent-lightning/stable/algorithm-zoo/apo/): APO API documentation
